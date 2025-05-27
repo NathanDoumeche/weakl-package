@@ -58,7 +58,8 @@ The features of this dataset are the following time series:
 * $t$ is the timestamp,
 * the French electricity load $\mathrm{Load}_t$ at time $t$,
 * $\mathrm{Load}_1$ and $\mathrm{Load}_7$ are the electricity demand lagged by one day and seven days, 
-* $\mathrm{temperature}$ is the French average temperature temperature, * $\mathrm{temperature}\_\mathrm{smooth}\_\mathrm{950}$,  $\mathrm{temperature}\_ \mathrm{max}\_ \mathrm{smooth}\_\mathrm{990}$, and $\mathrm{temperature}\_ \mathrm{min}\_ \mathrm{smooth}\_ 950$ are smoothed versions of $\mathrm{temperature}$, 
+* $\mathrm{temperature}$ is the French average temperature temperature,  $\text{temperature\_smooth\_950}$
+$,  $\mathrm{temperature}\_ \mathrm{max}\_ \mathrm{smooth}\_\mathrm{990}$, and $\mathrm{temperature}\_ \mathrm{min}\_ \mathrm{smooth}\_ 950$ are smoothed versions of $\mathrm{temperature}$, 
 * the time of year $\mathrm{toy} \in \{1, \dots, 365\}$ encodes the position within the year,
 * the day of the week $\mathrm{day\_ type\_ week} \in \{1, \dots, 7\}$ encodes the position within the week,
 * $\mathrm{day\_ type\_ jf}$ is a boolean variable set to one during holidays.
