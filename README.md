@@ -54,15 +54,13 @@ To experiment the package, we provide the dataset of Doumèche et al. (2023) on 
 
 
 The features of this dataset are the following time series:
-
-* $t$ is the timestamp,
-* the French electricity load $\mathrm{Load}_t$ at time $t$,
-* $\mathrm{Load}_1$ and $\mathrm{Load}_7$ are the electricity demand lagged by one day and seven days, 
-* $\mathrm{temperature}$ is the French average temperature temperature,  $\text{temperature\_smooth\_950}$
-$,  $\mathrm{temperature}\_ \mathrm{max}\_ \mathrm{smooth}\_\mathrm{990}$, and $\mathrm{temperature}\_ \mathrm{min}\_ \mathrm{smooth}\_ 950$ are smoothed versions of $\mathrm{temperature}$, 
-* the time of year $\mathrm{toy} \in \{1, \dots, 365\}$ encodes the position within the year,
-* the day of the week $\mathrm{day\_ type\_ week} \in \{1, \dots, 7\}$ encodes the position within the week,
-* $\mathrm{day\_ type\_ jf}$ is a boolean variable set to one during holidays.
+* $t$ is the timestamp,  
+* the French electricity load $\text{Load}_t$ at time $t$,  
+* $\text{Load}_1$ and $\text{Load}_7$ are the electricity demand lagged by one day and seven days,  
+* $\text{temperature}$ is the French average temperature, $\text{temperature\_smooth\_950}$, $\text{temperature\_max\_smooth\_990}$, and $\text{temperature\_min\_smooth\_950}$ are smoothed versions of $\text{temperature}$,  
+* the time of year $\text{toy} \in \{1, \dots, 365\}$ encodes the position within the year,  
+* the day of the week $\text{day\_type\_week} \in \{1, \dots, 7\}$ encodes the position within the week,  
+* $\text{day\_type\_jf}$ is a boolean variable set to one during holidays.
 
 Each time series is sampled at a frequency of $30$ minutes from 2013-01-08 to 2023-03-01.
 
@@ -77,11 +75,16 @@ data = dataset_load()
 
 ## Training an additive model
 
-In the following example, the feature variable is
-$$X =(\mathrm{Load}_1, \mathrm{Load}_7, \mathrm{temperature}, \mathrm{temperature\_smooth\_950}, \mathrm{temperature\_ max\_ smooth\_990},$$
-$$ \mathrm{temperature\_ min\_smooth\_ 950}, \mathrm{toy},  \mathrm{day\_ type\_ week}, \mathrm{day\_ type\_ jf},t).$$
-Here, the target $Y = \mathrm{Load}$ is the electricity demand, so $d_1 = 10$ and $d_2 = 1$.
-The goal is to learn the function $f^\star$ such that $\mathbb E(Y\mid X) = f^\star(X)$.
+In the following example, the feature variable is  
+$$
+X = (\text{Load}_1, \text{Load}_7, \text{temperature}, \text{temperature\_smooth\_950}, \text{temperature\_max\_smooth\_990},
+$$
+$$
+\text{temperature\_min\_smooth\_950}, \text{toy}, \text{day\_type\_week}, \text{day\_type\_jf}, t).
+$$  
+Here, the target $Y = \text{Load}$ is the electricity demand, so $d_1 = 10$ and $d_2 = 1$.  
+The goal is to learn the function $f^\star$ such that $\mathbb{E}(Y \mid X) = f^\star(X)$.
+
 
 
 In this example, the additive WeaKL is $$f_\theta(x) = \sum_{\ell=1}^{10} g_\ell(x_\ell),$$ where:
