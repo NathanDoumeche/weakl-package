@@ -91,7 +91,7 @@ In this example, the additive WeaKL is $$f_\theta(x) = \sum_{\ell=1}^{10} g_\ell
 
 * the effects $g_1$, $g_2$, and $g_{10}$ of $\mathrm{Load}_1$, $\mathrm{Load}_7$, and $t$ are linear,
 * the effects $g_3,\dots, g_7$ of the temperature features and $\mathrm{toy}$ are nonlinear with $m=10$,
-* the effects $g_8$ and $g_9$ of   $\mathrm{dat\_ type\_ week}$ and $\mathrm{day\_ type\_ jf}$ are categorical with $|E| = 7$ and $|E| = 2$.
+* the effects $g_8$ and $g_9$ of   $\text{day\_type\_week}$ and $\text{day\_type\_jf}$ are categorical with $|E| = 7$ and $|E| = 2$.
 
 
 ```python
