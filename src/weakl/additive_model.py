@@ -200,10 +200,7 @@ def half_hour_formatting(data, date, features_weakl):
         y_data = torch.tensor(df_train['Load'].values, device=device).view(-1,1)*(1+0*1j)
         ground_truth = torch.tensor(df_test['Load'].values, device=device)
 
-        if type_float64:
-          data_half_hourly.append([x_data, x_test, y_data, ground_truth])
-        else:
-          data_half_hourly.append([x_data.to(torch.float32), x_test.to(torch.float32), y_data.to(torch.complex64), ground_truth.to(torch.float32)])
+        data_half_hourly.append([x_data, x_test, y_data, ground_truth])
 
     x_data = torch.stack([data_half_hourly[i][0] for i in range(48)])
     x_test = torch.stack([data_half_hourly[i][1] for i in range(48)])
@@ -223,17 +220,6 @@ def sob_effects(features_weakl, m_list, s_list, n):
     sobolev_effects = torch.stack(sobolev_effects)*n
     return sobolev_effects
 
-def WeakL(data, hyperparameters, cov_hourly, M_stacked, criterion=""):
-    fourier_vectors= torch.linalg.solve(cov_hourly[0]+M_stacked, cov_hourly[1])
-    estimators = torch.matmul(cov_hourly[2], fourier_vectors).squeeze(-1)
-    if criterion=="mape":
-        perf_hourly = torch.mean(torch.abs(torch.real((estimators-cov_hourly[3])/cov_hourly[3])), dim=1)
-        perf=torch.mean(perf_hourly)
-    else:
-        perf_hourly = torch.sqrt(torch.mean(torch.square(torch.real(estimators-cov_hourly[3])), dim=1))
-        perf = torch.sqrt(torch.mean(torch.square(perf_hourly)))
-        
-    return perf, fourier_vectors, perf_hourly
 
 def create_grid(features_weakl, n, grid_parameters):
     features_type = features_weakl["masked"]
@@ -375,3 +361,47 @@ def print_effect(data, dates, features_weakl, hyperparameters, fourier_vectors, 
         plt.title(feature)
         plt.scatter(df_h[feature], np.real(g_h[feature]), s=10, color='darkcyan')
         plt.show()
+
+
+# WeaKL model
+
+def WeakL(data, hyperparameters, cov_hourly, M_stacked, criterion=""):
+    fourier_vectors= torch.linalg.solve(cov_hourly[0]+M_stacked, cov_hourly[1])
+    estimators = torch.matmul(cov_hourly[2], fourier_vectors).squeeze(-1)
+    if criterion=="mape":
+        perf_hourly = torch.mean(torch.abs(torch.real((estimators-cov_hourly[3])/cov_hourly[3])), dim=1)
+        perf=torch.mean(perf_hourly)
+    else:
+        perf_hourly = torch.sqrt(torch.mean(torch.square(torch.real(estimators-cov_hourly[3])), dim=1))
+        perf = torch.sqrt(torch.mean(torch.square(perf_hourly)))
+        
+    return perf, fourier_vectors, perf_hourly
+
+
+class AdditiveWeaKL():
+    def __init__(self, m_list, s_list, alpha_list):
+        
+       self.hyperparameters = {"m_list": m_list,
+                    "s_list": s_list,
+                    "alpha_list": alpha_list}
+       
+    def fit(self, data, dates_test, features_weakl):
+        m_list = self.hyperparameters["m_list"]
+        alpha_list = self.hyperparameters["alpha_list"]
+        s_list = self.hyperparameters["s_list"]
+
+        data_hourly = half_hour_formatting(data, dates_test, features_weakl)
+        cov_hourly = cov_hourly_m(m_list, data_hourly)
+        sobolev_matrix = Sob_matrix(alpha_list, s_list, m_list)*len(data_hourly[0][0])
+        M_stacked = torch.stack([sobolev_matrix for i in range(48)])
+
+        fourier_vectors= torch.linalg.solve(cov_hourly[0]+M_stacked, cov_hourly[1])
+        estimators = torch.matmul(cov_hourly[2], fourier_vectors).squeeze(-1)
+        
+        self.fourier_vectors = fourier_vectors
+
+        self.rmse_hourly = torch.sqrt(torch.mean(torch.square(torch.real(estimators-cov_hourly[3])), dim=1))
+        self.rmse = torch.sqrt(torch.mean(torch.square(self.rmse_hourly))).cpu().numpy()
+        self.rmse_hourly = self.rmse_hourly.cpu().numpy()
+
+        return estimators

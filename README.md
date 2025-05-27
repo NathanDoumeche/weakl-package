@@ -48,7 +48,7 @@ from weakl.utils import device, dataset_load
 from weakl.additive_model import 
 
 # Download the dataset on the French electricity load
-df = dataset_load()
+data = dataset_load()
 
 # Defining the additive model
 features_weakl = {

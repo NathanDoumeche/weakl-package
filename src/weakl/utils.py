@@ -23,6 +23,7 @@ def dataset_load():
             "Load", "Load_d1", "Load_d7",
             "temperature_smooth_950", "temperature", "temperature_max_smooth_990", 'temperature_min_smooth_950',
                 'toy', 'day_type_week', "day_type_jf"]
+    
     data = df[columns].copy()
     data['day_type_week']=np.float64(data.loc[:,'day_type_week'])
     data.rename(columns={'date':'Time'}, inplace=True)
