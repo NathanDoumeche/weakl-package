@@ -21,7 +21,6 @@ pip install weakl
 
 ## Resources
 
-* **Tutorial:** [https://github.com/claireBoyer/tutorial-piml](https://github.com/claireBoyer/tutorial-piml)
 * **Source code:** [https://github.com/NathanDoumeche/weakl](https://github.com/NathanDoumeche/weakl)
 * **Bug reports:** [https://github.com/NathanDoumeche/weakl/issues](https://github.com/NathanDoumeche/weakl/issues)
 
@@ -38,14 +37,63 @@ To cite this package:
       url={https://arxiv.org/abs/2502.10485}
     }
 
+To cite the dataset:
+
+    @article{doumèche2023humanspatialdynamicselectricity,
+      title={Human spatial dynamics for electricity demand forecasting: the case of France during the 2022 energy crisis}, 
+      author={Nathan Doumèche and Yann Allioux and Yannig Goude and Stefania Rubrichi},
+      year={2023},
+      journal={arXiv:2309.16238},
+      url={https://arxiv.org/abs/2309.16238}
+    }
+
 # Minimum examples
+
+## Loading the dataset
+To experiment the package, we provide the dataset of Doumèche et al. (2023) on the French electricity demand. The complete description of the dataset is available in the paper of Doumèche et al. (2023). 
+
+
+The features of this dataset are the following time series:
+
+* $t$ is the timestamp,
+* the French electricity load $\mathrm{Load}_t$ at time $t$,
+* $\mathrm{Load}_1$ and $\mathrm{Load}_7$ are the electricity demand lagged by one day and seven days, 
+* $\mathrm{temperature}$ is the French average temperature temperature, * $\mathrm{temperature\_smooth\_950}$,  $\mathrm{temperature\_ max\_ smooth\_990}$, and $\mathrm{temperature\_ min\_smooth\_ 950}$ are smoothed versions of $\mathrm{temperature}$, 
+* the time of year $\mathrm{toy} \in \{1, \dots, 365\}$ encodes the position within the year,
+* the day of the week $\mathrm{day\_ type\_ week} \in \{1, \dots, 7\}$ encodes the position within the week,
+* $\mathrm{day\_ type\_ jf}$ is a boolean variable set to one during holidays.
+
+Each time series is sampled at a frequency of $30$ minutes from 2013-01-08 to 2023-03-01.
+
+To load the dataset, run the following code.
+
+```python
+from weakl.utils import dataset_load
+
+# Download the dataset on the French electricity load
+data = dataset_load()
+```
 
 ## Training an additive model
 
+In the following example, the feature variable is
+$$X =(\mathrm{Load}_1, \mathrm{Load}_7, \mathrm{temperature}, \mathrm{temperature\_smooth\_950}, \mathrm{temperature\_ max\_ smooth\_990},$$
+$$ \mathrm{temperature\_ min\_smooth\_ 950}, \mathrm{toy},  \mathrm{day\_ type\_ week}, \mathrm{day\_ type\_ jf},t).$$
+Here, the target $Y = \mathrm{Load}$ is the electricity demand, so $d_1 = 10$ and $d_2 = 1$.
+The goal is to learn the function $f^\star$ such that $\mathbb E(Y\mid X) = f^\star(X)$.
+
+
+In this example, the additive WeaKL is $$f_\theta(x) = \sum_{\ell=1}^{10} g_\ell(x_\ell),$$ where:
+
+* the effects $g_1$, $g_2$, and $g_{10}$ of $\mathrm{Load}_1$, $\mathrm{Load}_7$, and $t$ are linear,
+* the effects $g_3,\dots, g_7$ of the temperature features and $\mathrm{toy}$ are nonlinear with $m=10$,
+* the effects $g_8$ and $g_9$ of   $\mathrm{dat\_ type\_ week}$ and $\mathrm{day\_ type\_ jf}$ are categorical with $|E| = 7$ and $|E| = 2$.
+
+
 ```python
-import pandas as pd
+from weakl.additive_model import AdditiveWeaKL
 from weakl.utils import device, dataset_load
-from weakl.additive_model import 
+import torch as torch
 
 # Download the dataset on the French electricity load
 data = dataset_load()
@@ -64,28 +112,23 @@ features_weakl["masked"] = features_weakl["features_type"].copy()
 # Setting the hyperparameters of the model
 m_list = ['Linear', 10, 10, 10, 10, 10, 4, 'Linear', 'Linear', 'Linear']
 alpha_list = torch.tensor([1.0000e-30, 1.0000e-30, 1.0000e-05, 1.0000e-03, 1.0000e-03, 1.0000e-04, 1.0000e-08, 1.0000e-30, 1.0000e-30, 1.0000e-30, 1.0000e-30],
-       device=device)
+    device=device)
 s_list = ['*', 2, 2, 2, 2, 2, 0, '*', '*', '*']
 
-hyperparameters = {"m_list": m_list,
-                   "s_list": s_list,
-                   "alpha_list": alpha_list}
-
 # Training the model
-dates_test = {
+dates = {
 "begin_train": "2013-01-08 00:00:00+00:00",
 "end_train": "2022-09-01 00:00:00+00:00",
 "end_test": "2023-02-28 00:00:00+00:00"
 }
 
-data_hourly = half_hour_formatting(data, dates_test, features_weakl)
-cov_hourly = cov_hourly_m(m_list, data_hourly)
-sobolev_matrix = Sob_matrix(alpha_list, s_list, m_list)*len(data_hourly[0][0])
-M_stacked = torch.stack([sobolev_matrix for i in range(48)])
+model = AdditiveWeaKL(m_list, s_list, alpha_list)
+model.fit(data, dates, features_weakl)
 
 # Evaluating the RMSE
-perf_test, fourier_vectors_test, perf_h_test = WeakL(data, hyperparameters, cov_hourly, M_stacked, criterion=criterion)
-print("The RMSE of the model is "+ str(perf_test.cpu().numpy()))
+rmse_hourly = model.rmse_hourly
+rmse = model.rmse
+print("The RMSE of the model is "+ str(rmse))
 ```
 
 ## Learning the hyperparameters of the additive model by grid search
