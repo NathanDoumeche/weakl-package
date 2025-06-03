@@ -17,8 +17,6 @@ def test_dataset():
                 'regression','categorical7','linear','linear','linear']
     }
 
-    features_weakl["masked"] = features_weakl["features_type"].copy()
-
     # Setting the hyperparameters of the model
     m_list = ['Linear', 10, 10, 10, 10, 10, 4, 'Linear', 'Linear', 'Linear']
     alpha_list = torch.tensor([1.0000e-30, 1.0000e-30, 1.0000e-05, 1.0000e-03, 1.0000e-03, 1.0000e-04, 1.0000e-08, 1.0000e-30, 1.0000e-30, 1.0000e-30, 1.0000e-30],

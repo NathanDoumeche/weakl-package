@@ -386,6 +386,10 @@ class AdditiveWeaKL():
                     "alpha_list": alpha_list}
        
     def fit(self, data, dates_test, features_weakl):
+        
+        if "masked" not in features_weakl:
+            features_weakl["masked"] = features_weakl["features_type"].copy()
+
         m_list = self.hyperparameters["m_list"]
         alpha_list = self.hyperparameters["alpha_list"]
         s_list = self.hyperparameters["s_list"]
